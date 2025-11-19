@@ -7,10 +7,7 @@ export default async function handler(req, res) {
     const { goal } = await getBody(req);
 
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-    });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const schema = {
       type: "object",
@@ -26,21 +23,34 @@ export default async function handler(req, res) {
       required: ["title", "description", "motivation", "suggestedTools"]
     };
 
+    const prompt = `
+      You are a quest guide revealing the NEXT step for the user's journey.
+
+      ⛔ STRICT RULES:
+      - Respond with ONLY valid JSON.
+      - NO markdown, NO code blocks, NO explanation.
+      - No extra text before or after the JSON.
+      - The output must match the schema exactly.
+
+      Goal Title: "${goal.title}"
+
+      Completed / Pending Steps:
+      ${goal.steps.map(s => `- ${s.title} (${s.isCompleted ? "done" : "pending"})`).join("\n")}
+
+      Provide the next step that logically follows.
+    `;
+
     const result = await model.generateJson({
-      prompt: `
-        Generate the next step for this goal:
-        Title: ${goal.title}
-        Steps so far:
-        ${goal.steps.map(s => `- ${s.title} (${s.isCompleted ? "done" : "pending"})`).join("\n")}
-      `,
-      jsonSchema: schema
+      prompt,
+      jsonSchema: schema,
+      strict: true
     });
 
     return res.status(200).json(result.json);
 
   } catch (err) {
     console.error("generateNextStep ERROR:", err);
-    return res.status(500).json({ error: "Next step generation failed" });
+    return res.status(500).json({ error: "Failed to generate next step" });
   }
 }
 
