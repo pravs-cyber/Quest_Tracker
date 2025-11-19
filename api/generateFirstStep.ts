@@ -1,16 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export const config = {
-  runtime: "edge",
-};
+export const config = { runtime: "nodejs" };
 
-export default async function handler(req) {
+export default async function handler(req, res) {
   try {
-    const { goalTitle, goalDescription } = await req.json();
+    const { goalTitle, goalDescription } = await getBody(req);
 
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.0-flash"
     });
 
     const schema = {
@@ -28,18 +27,26 @@ export default async function handler(req) {
     };
 
     const result = await model.generateJson({
-      prompt: `Generate the very first step for the goal: ${goalTitle}. Context: ${goalDescription}`,
-      jsonSchema: schema,
+      prompt: `
+        Generate the very first step for the quest:
+        "${goalTitle}"
+        Details: ${goalDescription}
+      `,
+      jsonSchema: schema
     });
 
-    return new Response(JSON.stringify(result.json), {
-      headers: { "Content-Type": "application/json" }
-    });
+    return res.status(200).json(result.json);
 
   } catch (err) {
     console.error("generateFirstStep error:", err);
-    return new Response(JSON.stringify({ error: "generation failed" }), {
-      status: 500,
-    });
+    return res.status(500).json({ error: "Failed to generate step" });
   }
+}
+
+function getBody(req) {
+  return new Promise(resolve => {
+    let data = "";
+    req.on("data", chunk => (data += chunk));
+    req.on("end", () => resolve(JSON.parse(data)));
+  });
 }
