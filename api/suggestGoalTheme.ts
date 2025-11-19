@@ -1,36 +1,36 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export default async function handler(req, res) {
-  const { title, description } = JSON.parse(req.body);
+export const config = { runtime: "edge" };
 
-  const ai = new GoogleGenerativeAI(process.env.API_KEY);
-  const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+export default async function handler(req) {
+  try {
+    const { title, description } = await req.json();
 
-  const schema = {
-    type: SchemaType.OBJECT,
-    properties: {
-      gradient: { type: SchemaType.STRING },
-      mapStyle: { 
-        type: SchemaType.STRING,
-        enum: ["classic", "midnight", "blueprint", "forest"]
-      }
-    },
-    required: ["gradient", "mapStyle"]
-  };
+    const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+    });
 
-  const prompt = `
-    Suggest a theme for this goal:
-    ${title}
-    ${description}
-  `;
+    const schema = {
+      type: "object",
+      properties: {
+        gradient: { type: "string" },
+        mapStyle: { type: "string" }
+      },
+      required: ["gradient", "mapStyle"]
+    };
 
-  const response = await model.generateContent({
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: schema
-    }
-  });
+    const result = await model.generateJson({
+      prompt: `Suggest a treasure-map theme for this goal: ${title}. Context: ${description}`,
+      jsonSchema: schema,
+    });
 
-  return res.status(200).json(JSON.parse(response.text()));
+    return new Response(JSON.stringify(result.json), {
+      headers: { "Content-Type": "application/json" }
+    });
+
+  } catch (err) {
+    console.error("suggestGoalTheme error:", err);
+    return new Response(JSON.stringify({ error: "Theme generation failed" }), { status: 500 });
+  }
 }
