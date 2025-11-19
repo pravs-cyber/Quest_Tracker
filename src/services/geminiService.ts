@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type, Schema } from "@google/generative-ai";
 import { BigGoal, GoalStep } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
+const ai = new GoogleGenerativeAI({ apiKey: import.meta.env.VITE_API_KEY });
 
 // Schema for a single step
 const stepSchema: Schema = {
