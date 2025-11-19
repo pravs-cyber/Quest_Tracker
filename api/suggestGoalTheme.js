@@ -7,8 +7,9 @@ export default async function handler(req, res) {
     const { title, description } = await getBody(req);
 
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash"
+      model: "gemini-2.0-flash",
     });
 
     const schema = {
@@ -21,15 +22,25 @@ export default async function handler(req, res) {
     };
 
     const result = await model.generateJson({
-      prompt: `Suggest a quest theme for ${title}. ${description}`,
+      prompt: `
+        Suggest a treasure-map theme for this goal:
+        "${title}"
+        Description: ${description}
+
+        Output ONLY JSON:
+        {
+          "gradient": "linear-gradient(to right, #xxxxxx, #yyyyyy)",
+          "mapStyle": "classic | midnight | blueprint | forest"
+        }
+      `,
       jsonSchema: schema
     });
 
     return res.status(200).json(result.json);
 
   } catch (err) {
-    console.error("suggestGoalTheme error:", err);
-    return res.status(500).json({ error: "Theme suggestion failed" });
+    console.error("suggestGoalTheme ERROR:", err);
+    return res.status(500).json({ error: "Theme generation failed" });
   }
 }
 
