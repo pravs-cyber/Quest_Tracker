@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash"
+      model: "gemini-2.0-flash",
     });
 
     const schema = {
@@ -27,26 +27,22 @@ export default async function handler(req, res) {
     };
 
     const result = await model.generateJson({
-      prompt: `
-        Generate the very first step for the quest:
-        "${goalTitle}"
-        Details: ${goalDescription}
-      `,
+      prompt: `Generate first step for: ${goalTitle}. ${goalDescription}`,
       jsonSchema: schema
     });
 
     return res.status(200).json(result.json);
 
   } catch (err) {
-    console.error("generateFirstStep error:", err);
-    return res.status(500).json({ error: "Failed to generate step" });
+    console.error("FirstStep Error:", err);
+    return res.status(500).json({ error: "Failed to generate first step" });
   }
 }
 
 function getBody(req) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let data = "";
-    req.on("data", chunk => (data += chunk));
+    req.on("data", (chunk) => (data += chunk));
     req.on("end", () => resolve(JSON.parse(data)));
   });
 }
