@@ -1,37 +1,43 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export default async function handler(req, res) {
-  const { goal } = JSON.parse(req.body);
+export const config = { runtime: "edge" };
 
-  const ai = new GoogleGenerativeAI(process.env.API_KEY);
-  const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+export default async function handler(req) {
+  try {
+    const { goal } = await req.json();
 
-  const schema = {
-    type: SchemaType.OBJECT,
-    properties: {
-      title: { type: SchemaType.STRING },
-      description: { type: SchemaType.STRING },
-      motivation: { type: SchemaType.STRING },
-      suggestedTools: {
-        type: SchemaType.ARRAY,
-        items: { type: SchemaType.STRING }
-      }
-    },
-    required: ["title", "description", "motivation", "suggestedTools"]
-  };
+    const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+    });
 
-  const prompt = `Generate the next step for the user's goal:
-  Goal: ${goal.title}
-  Description: ${goal.description}
-  Steps so far: ${goal.steps?.map(s => s.title).join(", ")}`;
+    const schema = {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        description: { type: "string" },
+        motivation: { type: "string" },
+        suggestedTools: {
+          type: "array",
+          items: { type: "string" }
+        }
+      },
+      required: ["title", "description", "motivation", "suggestedTools"]
+    };
 
-  const response = await model.generateContent({
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: schema
-    }
-  });
+    const result = await model.generateJson({
+      prompt: `Generate the next step for the goal "${goal.title}". Completed steps: ${goal.steps
+        ?.map(s => `${s.title} (${s.isCompleted ? "done" : "pending"})`)
+        .join(", ")}`,
+      jsonSchema: schema,
+    });
 
-  return res.status(200).json(JSON.parse(response.text()));
+    return new Response(JSON.stringify(result.json), {
+      headers: { "Content-Type": "application/json" }
+    });
+
+  } catch (err) {
+    console.error("generateNextStep error:", err);
+    return new Response(JSON.stringify({ error: "Next step failed" }), { status: 500 });
+  }
 }
