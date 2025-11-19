@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const config = {
   runtime: "edge",
@@ -14,28 +14,25 @@ export default async function handler(req) {
     });
 
     const schema = {
-      type: SchemaType.OBJECT,
+      type: "object",
       properties: {
-        title: { type: SchemaType.STRING },
-        description: { type: SchemaType.STRING },
-        motivation: { type: SchemaType.STRING },
+        title: { type: "string" },
+        description: { type: "string" },
+        motivation: { type: "string" },
         suggestedTools: {
-          type: SchemaType.ARRAY,
-          items: { type: SchemaType.STRING }
+          type: "array",
+          items: { type: "string" }
         }
       },
       required: ["title", "description", "motivation", "suggestedTools"]
     };
 
-    const result = await model.generateContent({
-      contents: `Generate the first step for: ${goalTitle}. ${goalDescription}`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: schema
-      }
+    const result = await model.generateJson({
+      prompt: `Generate the very first step for the goal: ${goalTitle}. Context: ${goalDescription}`,
+      jsonSchema: schema,
     });
 
-    return new Response(result.response.text(), {
+    return new Response(JSON.stringify(result.json), {
       headers: { "Content-Type": "application/json" }
     });
 
