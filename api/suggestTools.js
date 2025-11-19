@@ -7,8 +7,9 @@ export default async function handler(req, res) {
     const { title, description } = await getBody(req);
 
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash"
+      model: "gemini-2.0-flash",
     });
 
     const schema = {
@@ -23,14 +24,18 @@ export default async function handler(req, res) {
     };
 
     const result = await model.generateJson({
-      prompt: `Suggest 1-3 tools needed for this step: ${title}. ${description}`,
+      prompt: `
+        Suggest exactly 1–3 tools needed for this step:
+        "${title}"
+        Description: ${description}
+      `,
       jsonSchema: schema
     });
 
     return res.status(200).json(result.json);
 
   } catch (err) {
-    console.error("suggestTools error:", err);
+    console.error("suggestTools ERROR:", err);
     return res.status(500).json({ error: "Tool suggestion failed" });
   }
 }
