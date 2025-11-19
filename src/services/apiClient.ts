@@ -41,6 +41,11 @@ export async function generateMapBackground(theme: string) {
     body: JSON.stringify({ theme })
   });
 
-  // The backend sends raw bytes (base64)
-  return await res.text();
+  if (!res.ok) {
+    throw new Error("Map generation failed");
+  }
+
+  // Convert PNG response to a blob URL
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
 }
