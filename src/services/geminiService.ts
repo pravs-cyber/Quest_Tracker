@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type, Schema } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { BigGoal, GoalStep } from "../types";
 
 const ai = new GoogleGenerativeAI({ apiKey: import.meta.env.VITE_API_KEY });
