@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { generateFirstStep, generateMapBackground, suggestGoalTheme } from '../services/geminiService';
+import { generateFirstStep, generateMapBackground, suggestGoalTheme } from '../services/apiClient';
 import { BigGoal, MapStyle } from '../types';
 import { Loader2, Wand2, Pencil, Map as MapIcon, Scroll, Moon, Binary, Trees, RefreshCw, Image as ImageIcon, Palette, Sparkles } from 'lucide-react';
 
