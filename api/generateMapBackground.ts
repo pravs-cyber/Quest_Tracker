@@ -1,25 +1,37 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export const config = { runtime: "edge" };
+export const config = { runtime: "nodejs" };
 
-export default async function handler(req) {
+export default async function handler(req, res) {
   try {
-    const { theme } = await req.json();
+    const { theme } = await getBody(req);
 
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-    const model = genAI.getGenerativeModel({ model: "imagen-1.0" });
+
+    const model = genAI.getGenerativeModel({
+      model: "imagen-1.0"
+    });
 
     const result = await model.generateImage({
-      prompt: `A treasure map background with theme: ${theme}. No text.`,
-      size: "1024x1024",
+      prompt: `Top-down treasure map background. Theme: ${theme}. No text.`,
+      size: "1024x1024"
     });
 
-    return new Response(result.image, {
-      headers: { "Content-Type": "image/png" }
-    });
+    const imageBytes = result.image;
+
+    res.setHeader("Content-Type", "image/png");
+    return res.status(200).send(imageBytes);
 
   } catch (err) {
-    console.error("generateMapBackground error:", err);
-    return new Response(JSON.stringify({ error: "Map failed" }), { status: 500 });
+    console.error("generateMapBackground ERROR:", err);
+    return res.status(500).json({ error: "Map background generation failed" });
   }
+}
+
+function getBody(req) {
+  return new Promise(resolve => {
+    let data = "";
+    req.on("data", chunk => (data += chunk));
+    req.on("end", () => resolve(JSON.parse(data)));
+  });
 }
