@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { BigGoal, GoalStep, MapStyle } from '../types';
 import { TreasureMap } from './TreasureMap';
 import { CheckCircle, ArrowLeft, Wand2, Pencil, Sparkles, Wrench, Loader2 } from 'lucide-react';
-import { generateNextStep, suggestTools } from '../services/geminiService';
+import { generateNextStep, suggestTools } from '../services/apiClient';
 
 interface GoalViewProps {
   goal: BigGoal;
