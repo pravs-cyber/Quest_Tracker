@@ -1,0 +1,36 @@
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+
+export default async function handler(req, res) {
+  const { title, description } = JSON.parse(req.body);
+
+  const ai = new GoogleGenerativeAI(process.env.API_KEY);
+  const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+  const schema = {
+    type: SchemaType.OBJECT,
+    properties: {
+      gradient: { type: SchemaType.STRING },
+      mapStyle: { 
+        type: SchemaType.STRING,
+        enum: ["classic", "midnight", "blueprint", "forest"]
+      }
+    },
+    required: ["gradient", "mapStyle"]
+  };
+
+  const prompt = `
+    Suggest a theme for this goal:
+    ${title}
+    ${description}
+  `;
+
+  const response = await model.generateContent({
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: schema
+    }
+  });
+
+  return res.status(200).json(JSON.parse(response.text()));
+}
