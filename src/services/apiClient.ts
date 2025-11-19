@@ -4,7 +4,6 @@ export async function generateFirstStep(goalTitle: string, goalDescription: stri
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ goalTitle, goalDescription })
   });
-
   return await res.json();
 }
 
@@ -14,7 +13,6 @@ export async function generateNextStep(goal: any) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ goal })
   });
-
   return await res.json();
 }
 
@@ -24,7 +22,6 @@ export async function suggestTools(title: string, description: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, description })
   });
-
   return await res.json();
 }
 
@@ -34,6 +31,16 @@ export async function suggestGoalTheme(title: string, description: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, description })
   });
-
   return await res.json();
+}
+
+export async function generateMapBackground(theme: string) {
+  const res = await fetch("/api/generateMapBackground", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ theme })
+  });
+
+  // The backend sends raw bytes (base64)
+  return await res.text();
 }
