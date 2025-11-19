@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash"
+      model: "gemini-2.0-flash",
     });
 
     const schema = {
@@ -28,11 +28,10 @@ export default async function handler(req, res) {
 
     const result = await model.generateJson({
       prompt: `
-        Goal: ${goal.title}
-        Previous Steps:
+        Generate the next step for this goal:
+        Title: ${goal.title}
+        Steps so far:
         ${goal.steps.map(s => `- ${s.title} (${s.isCompleted ? "done" : "pending"})`).join("\n")}
-
-        Generate the *next* step.
       `,
       jsonSchema: schema
     });
@@ -40,7 +39,7 @@ export default async function handler(req, res) {
     return res.status(200).json(result.json);
 
   } catch (err) {
-    console.error("generateNextStep error:", err);
+    console.error("generateNextStep ERROR:", err);
     return res.status(500).json({ error: "Next step generation failed" });
   }
 }
