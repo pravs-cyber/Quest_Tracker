@@ -1,35 +1,38 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export default async function handler(req, res) {
-  const { title, description } = JSON.parse(req.body);
+export const config = { runtime: "edge" };
 
-  const ai = new GoogleGenerativeAI(process.env.API_KEY);
-  const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+export default async function handler(req) {
+  try {
+    const { title, description } = await req.json();
 
-  const schema = {
-    type: SchemaType.OBJECT,
-    properties: {
-      tools: {
-        type: SchemaType.ARRAY,
-        items: { type: SchemaType.STRING }
-      }
-    },
-    required: ["tools"]
-  };
+    const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+    });
 
-  const prompt = `
-    Suggest 1-3 tools needed for this step:
-    Title: ${title}
-    Description: ${description}
-  `;
+    const schema = {
+      type: "object",
+      properties: {
+        tools: {
+          type: "array",
+          items: { type: "string" }
+        }
+      },
+      required: ["tools"]
+    };
 
-  const response = await model.generateContent({
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: schema
-    }
-  });
+    const result = await model.generateJson({
+      prompt: `Suggest 1-3 essential tools needed for: ${title}. ${description}`,
+      jsonSchema: schema,
+    });
 
-  return res.status(200).json(JSON.parse(response.text()));
+    return new Response(JSON.stringify(result.json), {
+      headers: { "Content-Type": "application/json" }
+    });
+
+  } catch (err) {
+    console.error("suggestTools error:", err);
+    return new Response(JSON.stringify({ error: "Tool generation failed" }), { status: 500 });
+  }
 }
