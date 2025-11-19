@@ -7,10 +7,7 @@ export default async function handler(req, res) {
     const { title, description } = await getBody(req);
 
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-    });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const schema = {
       type: "object",
@@ -21,26 +18,35 @@ export default async function handler(req, res) {
       required: ["gradient", "mapStyle"]
     };
 
-    const result = await model.generateJson({
-      prompt: `
-        Suggest a treasure-map theme for this goal:
-        "${title}"
-        Description: ${description}
+    const prompt = `
+      Suggest a visual theme for the user's quest.
 
-        Output ONLY JSON:
-        {
-          "gradient": "linear-gradient(to right, #xxxxxx, #yyyyyy)",
-          "mapStyle": "classic | midnight | blueprint | forest"
-        }
-      `,
-      jsonSchema: schema
+      Goal Title: "${title}"
+      Description: "${description}"
+
+      Output Requirements:
+      ⛔ JSON ONLY. No markdown. No explanation.
+      ⛔ gradient MUST be a CSS linear-gradient with 2 hex colors.
+      ⛔ mapStyle MUST be one of: "classic", "midnight", "blueprint", "forest".
+
+      Output format example:
+      {
+        "gradient": "linear-gradient(to right, #000000, #ffffff)",
+        "mapStyle": "classic"
+      }
+    `;
+
+    const result = await model.generateJson({
+      prompt,
+      jsonSchema: schema,
+      strict: true
     });
 
     return res.status(200).json(result.json);
 
   } catch (err) {
     console.error("suggestGoalTheme ERROR:", err);
-    return res.status(500).json({ error: "Theme generation failed" });
+    return res.status(500).json({ error: "Failed to generate theme" });
   }
 }
 
