@@ -6,14 +6,14 @@ const ai = new GoogleGenerativeAI({ apiKey: import.meta.env.VITE_API_KEY });
 
 // Schema for a single step
 const stepSchema: Schema = {
-  type: Type.OBJECT,
+  type: SchemaType.OBJECT,
   properties: {
-    title: { type: Type.STRING, description: "A short, punchy title for the step (max 5 words)." },
-    description: { type: Type.STRING, description: "A clear, actionable instruction for this step." },
-    motivation: { type: Type.STRING, description: "A short treasure-hunt style hint or encouraging quote related to this step." },
+    title: { type: SchemaType.STRING, description: "A short, punchy title for the step (max 5 words)." },
+    description: { type: SchemaType.STRING, description: "A clear, actionable instruction for this step." },
+    motivation: { type: SchemaType.STRING, description: "A short treasure-hunt style hint or encouraging quote related to this step." },
     suggestedTools: { 
-      type: Type.ARRAY, 
-      items: { type: Type.STRING },
+      type: SchemaType.ARRAY, 
+      items: { type: SchemaType.STRING },
       description: "A list of 1-3 physical or digital tools, apps, or items specifically needed for this task (e.g., 'Running Shoes', 'VS Code', 'Hammer')."
     }
   },
@@ -22,21 +22,21 @@ const stepSchema: Schema = {
 
 // Schema for theme suggestion
 const themeSchema: Schema = {
-  type: Type.OBJECT,
+  type: SchemaType.OBJECT,
   properties: {
-    gradient: { type: Type.STRING, description: "A CSS linear-gradient string with two SPECIFIC HEX CODES that match the specific emotion of the goal. Do not use named colors. Example: 'linear-gradient(to right, #ff5f6d, #ffc371)'" },
-    mapStyle: { type: Type.STRING, enum: ['classic', 'midnight', 'blueprint', 'forest'], description: "The visual map style that best fits the quest theme." }
+    gradient: { type: SchemaType.STRING, description: "A CSS linear-gradient string with two SPECIFIC HEX CODES that match the specific emotion of the goal. Do not use named colors. Example: 'linear-gradient(to right, #ff5f6d, #ffc371)'" },
+    mapStyle: { type: SchemaType.STRING, enum: ['classic', 'midnight', 'blueprint', 'forest'], description: "The visual map style that best fits the quest theme." }
   },
   required: ["gradient", "mapStyle"],
 };
 
 // Schema for tool suggestion
 const toolsSchema: Schema = {
-  type: Type.OBJECT,
+  type: SchemaType.OBJECT,
   properties: {
     tools: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
       description: "List of 1-3 relevant tools."
     }
   },
