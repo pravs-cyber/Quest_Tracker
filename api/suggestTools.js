@@ -7,10 +7,7 @@ export default async function handler(req, res) {
     const { title, description } = await getBody(req);
 
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-    });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const schema = {
       type: "object",
@@ -23,20 +20,33 @@ export default async function handler(req, res) {
       required: ["tools"]
     };
 
+    const prompt = `
+      Suggest 1–3 specific tools needed for this task:
+
+      Title: "${title}"
+      Description: "${description}"
+
+      ⛔ STRICT OUTPUT RULES:
+      - JSON ONLY, no text outside JSON.
+      - No markdown.
+      - No explanation.
+      - Follow the schema exactly.
+
+      Example response structure:
+      { "tools": ["Tool A", "Tool B"] }
+    `;
+
     const result = await model.generateJson({
-      prompt: `
-        Suggest exactly 1–3 tools needed for this step:
-        "${title}"
-        Description: ${description}
-      `,
-      jsonSchema: schema
+      prompt,
+      jsonSchema: schema,
+      strict: true
     });
 
     return res.status(200).json(result.json);
 
   } catch (err) {
     console.error("suggestTools ERROR:", err);
-    return res.status(500).json({ error: "Tool suggestion failed" });
+    return res.status(500).json({ error: "Failed to suggest tools" });
   }
 }
 
